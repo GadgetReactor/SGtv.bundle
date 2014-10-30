@@ -1,0 +1,41 @@
+import re
+
+def MetadataObjectForURL(url):
+
+	# Request the URL
+	page = HTML.ElementFromURL(url)
+
+	# Extract the details available directly form the page.
+	title = "HELLO"
+#	description = page.xpath("//head//meta[@name='description']")[0].get('content')
+#	thumb = page.xpath("//head//meta[@property='og:image']")[0].get('content')
+
+	return VideoClipObject(
+		title = title,
+		summary = description,
+		thumb = thumb) 
+		
+def MediaObjectsForURL(url):
+	return [
+		MediaObject(
+			video_codec = VideoCodec.H264,
+			audio_codec = AudioCodec.MP3,
+			container = 'mp4',
+			parts = [PartObject(key=Callback(PlayVideo, url = url))]
+		)
+	]
+ 
+def PlayVideo(url):
+
+	# Request the URL
+	page = HTTP.Request(url).content
+
+	match=re.compile('"profile".+?"url":"(.+?)",.+?bitrate":(.+?),"').findall(page)
+	x=0
+	for url_quality, bitrate in match:
+		if int(bitrate) > x: 
+			video_url=url_quality
+			x=int(bitrate)	
+	video_url = "http://player.vimeo.com/external/107013312.sd.mp4?s=1580084626f296427e972a164f81b7aa"
+	return Redirect(video_url)
+

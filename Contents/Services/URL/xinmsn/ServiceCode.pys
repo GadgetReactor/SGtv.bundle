@@ -1,0 +1,43 @@
+import re
+
+def MetadataObjectForURL(url):
+ 
+    # Request the URL
+    page = HTML.ElementFromURL(url)
+ 
+    # Extract the details available directly form the page.
+    title = page.xpath("//head//meta[@property='og:title']")[0].get('content')
+    description = page.xpath("//head//meta[@property='og:description']")[0].get('content')
+    thumb = page.xpath("//head//meta[@property='og:image']")[0].get('content')
+
+    thumb = thumb.replace('&w=200','&w=400')
+ 
+    return VideoClipObject(
+        title = title,
+        summary = description,
+        thumb = thumb) 
+	
+def MediaObjectsForURL(url):
+    return [
+        MediaObject(
+            video_codec = VideoCodec.H264,
+            audio_codec = AudioCodec.MP3,
+            container = 'mp4',
+            parts = [PartObject(key=Callback(PlayVideo, url = url))]
+        )
+    ]
+ 
+def PlayVideo(url):
+ 
+    # Request the URL
+    page = HTTP.Request(url).content
+ 
+    match=re.compile("{&quot;formatCode&quot;:&quot;(...)&quot;,&quot;url&quot;:&quot;(.+?)&quot;,").findall(page)
+    x=0
+
+    for formatcode, url_quality in match:
+    	if int(formatcode) > x: 
+    		video=url_quality
+    		x=int(formatcode)
+
+    return Redirect(video)
