@@ -87,11 +87,11 @@ def htmlParse(str):
 def Shows(channel):
 	oc = ObjectContainer()
 	data = openUrl("http://xin.msn.com/en-sg/video/catchup/")
-	showlist  = re.compile('<div class="list"  data-module-id="homepage\|%s\|Tab\|(.*?)\|.+?:&quot;(.+?)&quot' % (channel)).findall(data)
+	showlist  = re.compile('<div data-tabkey="tab-(\d+)".*?homepage\|%s\|tab\|(.*?)\|.+?:&quot;(.+?)&quot' % (channel)).findall(data)
 
-	for show, thumb in showlist:
+	for tab, show, thumb in showlist:
 		image = 'http:'+ thumb.replace('&amp;','&')
-		oc.add(DirectoryObject(key = Callback(Episodes, show=show, channel=channel), title = show))	
+		oc.add(DirectoryObject(key = Callback(Episodes, show=show, channel=channel, tab=tab), title = show))	
 
 	return oc
 
@@ -152,7 +152,7 @@ def Viddsee(page, type):
 	return oc
 	
 ###################################################################################################	
-def Episodes(show, channel):
+def Episodes(show, channel, tab):
 	oc = ObjectContainer()
 
 	data=openUrl("http://xin.msn.com/en-sg/video/catchup/")
@@ -161,7 +161,7 @@ def Episodes(show, channel):
 		episodelist = re.compile('<li.+?href="(.+?)".+?:&quot;(.+?)&quot.+?<h4>(.+?)</h4>.+?"duration">(.+?)<.+?</li>').findall(data)	
 
 	else:
-		episodechunk  = re.compile('<div class="list"  data-module-id="homepage\|%s\|Tab\|%s(.+?)(<div data-tabkey|</main>)' % (channel, show)).search(data).group(1)
+		episodechunk  = re.compile('class="section tabsection horizontal".+?data-section-id="%s".+?<div data-tabkey="%s"(.+?)</ul>' % (channel, tab)).search(data).group(1)
 		episodelist = re.compile('<li.+?href="(.+?)".+?:&quot;(.+?)&quot.+?<h4>(.+?)</h4>.+?"duration">(.+?)<.+?</li>').findall(episodechunk)	
 
 	for episode_url, thumb, title, time in episodelist:
@@ -187,13 +187,3 @@ def Episodes(show, channel):
 		oc.add(video)
 		
 	return oc
-
-###################################################################################################
-		
-def GetThumb(url):
-
-  try:
-    data = HTTP.Request(url, cacheTime=CACHE_1MONTH).content
-    return DataObject(data, 'image/jpeg')
-  except:
-    return Redirect(R(VIDEO_ICON))
