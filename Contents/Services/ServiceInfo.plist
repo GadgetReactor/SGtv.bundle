@@ -4,11 +4,11 @@
 <dict>
   <key>URL</key>
   <dict>
-    <key>xinmsn</key>
+    <key>Toggle</key>
     <dict>
       <key>URLPatterns</key>
       <array>
-        <string>http://xin.msn.com/.+</string>
+        <string>http://video.toggle.sg/.+</string>
       </array>
     </dict>
   </dict>
