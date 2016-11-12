@@ -66,7 +66,14 @@ def MainMenu():
 	oc.add(DirectoryObject(key = Callback(Youtube, user='channelnewsasia'), title = 'Channel News Asia', thumb=R('cna.png')))
 	oc.add(DirectoryObject(key = Callback(Youtube, user='wahbanana'), title = 'WahBanana', thumb=R('wahbanana.jpg')))
 	oc.add(DirectoryObject(key = Callback(Viddsee, page='0', type = 'popular'), title = 'Viddsee', thumb=R('viddsee.png')))
-
+	video = VideoClipObject(
+								title = "Live Soccer"
+								#originally_available_at = video_date,
+								#rating = video_rating,
+								thumb = Callback(Thumb, url=""),
+								url = "http://54.254.237.206/ace/stream/",
+								)
+	oc.add(video)
 	return oc
 
 ###################################################################################################
