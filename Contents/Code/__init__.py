@@ -95,8 +95,7 @@ def Thumb(url):
 def Toggle(channel):
 	oc = ObjectContainer()
 	data=openUrl("http://video.toggle.sg/en/%s" % channel)
-	showlist  = re.compile('<div class="tg-teaser-item".*?data-srcset="(.+?)".+?href="(.+?)">(.+?)<').findall(data)
-
+	showlist  = re.compile('srcset="(.+?)".+?href="(.+?)">(.+?)<').findall(data)
 	for image, url, show in showlist:
 		if "http" not in image:
 			image = "http://video.toggle.sg" + image
@@ -114,26 +113,29 @@ def Toggle(channel):
 
 ###################################################################################################
 
-def Shows(channel):
+def Shows(channel, page=0):
 	oc = ObjectContainer()
-	data=openUrl("http://tv.toggle.sg/en/%s/shows" % channel)
-	showlist  = re.compile('data-src.+?"(.+?)".+?href="(.+?)">(.+?)<').findall(data)
-
-	"""
-	Channel 8
-	id: 5275960,
-    navigationId: 5013778,
-    channelId: 331027,
-
-	Channel 5
-	id: 5275964,
-	navigationId: 5013778,
-	channelId: 331025,
-	"""
+	
+	if channel == "channel5":
+		geturl = "http://tv.toggle.sg/en/blueprint/servlet/toggle/bandlist?id=5211104&navigationId=5006598&channelId=331441&pageIndex="
+	elif channel == "channel8":
+		geturl = "http://tv.toggle.sg/en/blueprint/servlet/toggle/bandlist?id=5183464&navigationId=5006610&channelId=331442&pageIndex="
+	elif channel == "channelu":
+		geturl = "http://tv.toggle.sg/en/blueprint/servlet/toggle/bandlist?id=5184730&navigationId=5006618&channelId=331443&pageIndex="
+	elif channel == "suria":
+		geturl = "http://tv.toggle.sg/en/blueprint/servlet/toggle/bandlist?id=5185064&navigationId=5006594&channelId=331445&pageIndex="
+	elif channel == "vasantham":
+		geturl = "http://tv.toggle.sg/en/blueprint/servlet/toggle/bandlist?id=5185200&navigationId=5006602&channelId=331446&pageIndex="
+	elif channel == "okto":
+		geturl = "http://tv.toggle.sg/en/blueprint/servlet/toggle/bandlist?id=5184922&navigationId=5006614&channelId=331444&pageIndex="
+	geturl = geturl+str(page)+"&pageSize=18&isPortrait=0&sortBy=START_DATE&filterJson=%7B%7D&filterText"
+	
+	data=openUrl(geturl)
+	showlist  = re.compile('img src="(.*?)".+?a href="(.+?)">(.+?)<\/a>').findall(data)
 
 	for image, url, show in showlist:
 		if "http" not in image:
-			image = "http://video.toggle.sg" + image
+			image = "http://tv.toggle.sg" + image
 		oc.add(DirectoryObject(key = Callback(Episodes, show=show, channel=channel, tab=url, page=0), title = show, thumb = Callback(Thumb, url=image)))
 
 	return oc
@@ -143,23 +145,17 @@ def Shows(channel):
 def Youtube(user):
 	oc = ObjectContainer()
 	youtube_url = "http://gdata.youtube.com/feeds/api/users/" + user + "/uploads?v=2&alt=json"
-
-	data = JSON.ObjectFromURL (youtube_url)
-
-	for entry in data["feed"]["entry"]:
-		title = entry["title"]["$t"]
-		video_id = entry["media$group"]["yt$videoid"]["$t"]
-		desc = entry["media$group"]["media$description"]["$t"]
-		image = "http://img.youtube.com/vi/" + video_id + "/0.jpg"
+	
+	youtube_url = "https://www.youtube.com/feeds/videos.xml?user=" + user
+	data = openUrl (youtube_url)
+	showlist  = re.compile('<media\:title>(.+?)<.+?\/v\/(.+?)\?.+?url="(.+?)".+?description>(.+?)<').findall(data)
+	for title, url, image, desc in showlist:
+		video_id = url
 		video = VideoClipObject(
-								title = title,
-								summary = desc,
-								#originally_available_at = video_date,
-								#rating = video_rating,
-
-								url = "http://youtube.com/watch?v="+video_id,
-								)
-
+			title = title,
+			summary = desc,
+			url = "http://youtube.com/watch?v="+video_id,
+			)
 		oc.add(video)
 	return oc
 
